@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: iothub-listener
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: iothub-apps
+    spec:
+      containers:
+      - name: iothub-listener 
+        image: richardjortega/sampleephreceiver:1.0
+        imagePullPolicy: Always
+        env:
+          - name: EVENT_HUB_CONNECTION_STRING
+            value: EVENT_HUB_CONNECTION_STRING_VALUE
+          - name: EVENT_HUB_NAME
+            value: EVENT_HUB_NAME_VALUE
+          - name: STORAGE_CONTAINER_NAME
+            value: STORAGE_CONTAINER_NAME_VALUE
+          - name: STORAGE_ACCOUNT_NAME
+            value: STORAGE_ACCOUNT_NAME_VALUE
+          - name: STORAGE_ACCOUNT_KEY
+            value: STORAGE_ACCOUNT_KEY_VALUE
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: iothub-sender
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: iothub-apps
+    spec:
+      containers:
+      - name:  iothubsender
+        image: richardjortega/nodejs-iothub-device-sim
+        imagePullPolicy: Always
+        env:
+          - name:  DEVICE_CONNECTION_STRING
+            value: DEVICE_CONNECTION_STRING_VALUE
