@@ -19,7 +19,7 @@ echo "Done."
 # Create VNET and subnet
 ADDR_PREFIXES='10.0.0.0/16'
 SUBNET_PREFIXES='10.0.0.0/24'
-echo "Creating a VNET ($VNET_NAME) with address prefixes ($ADDR_PREFIXES) and subnet ($SUBNET_NAME) with address prefixes ($SUBNET_PREFIXES)"
+echo "Creating a VNet ($VNET_NAME) with address prefixes ($ADDR_PREFIXES) and subnet ($SUBNET_NAME) with address prefixes ($SUBNET_PREFIXES)"
 az network vnet create \
   --resource-group $RESOURCE_GROUP \
   --name $VNET_NAME \
@@ -29,9 +29,10 @@ az network vnet create \
 echo "Done."
 
 az network vnet subnet update \
-  --service-endpoints Microsoft.EventHub \
   --resource-group $RESOURCE_GROUP \
-  --vnet-name $VNET_NAME
+  --vnet-name $VNET_NAME \
+  --subnet-name $SUBNET_NAME \
+  --service-endpoints Microsoft.EventHub
 
 # Subnet ID
 SUBNET_ID=$(az network vnet subnet list \
@@ -41,7 +42,7 @@ SUBNET_ID=$(az network vnet subnet list \
   --output tsv)
 
 # Create AKS cluster
-echo "Creating an AKS cluster (using advanced networking + auto-gen SSH keys) within VNET Subnet ID: $SUBNET_ID"
+echo "Creating an AKS cluster (using advanced networking + auto-gen SSH keys) within VNet Subnet ID: $SUBNET_ID"
 az aks create \
   --resource-group $RESOURCE_GROUP \
   --name $K8S_CLUSTER_NAME \
