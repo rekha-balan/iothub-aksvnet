@@ -109,7 +109,8 @@ IOTHUB_EVENTS_EH_HUB_COMPAT_EP=$(az iot hub show \
 IOTHUB_KEY=$(az iot hub policy show \
   --hub-name $IOT_HUB_NAME \
   --name $IOTHUB_POLICY_NAME \
-  --query primaryKey)
+  --query primaryKey \
+  --output tsv)
 
 EVENT_HUB_CONNECTION_STRING="$IOTHUB_EVENTS_EH_HUB_COMPAT_EP;SharedAccessKeyName=$IOTHUB_POLICY_NAME;SharedAccessKey=$IOTHUB_KEY"
 EVENT_HUB_NAME="messages/events"
