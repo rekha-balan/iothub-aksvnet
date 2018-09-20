@@ -38,7 +38,7 @@ spec:
     spec:
       containers:
       - name:  iothubsender
-        image: richardjortega/nodejs-iothub-device-sim:1.0
+        image: richardjortega/nodejs-iothub-device-sim:1.1
         imagePullPolicy: Always
         env:
           - name:  DEVICE_CONNECTION_STRING
