@@ -1,9 +1,9 @@
 LOCATION="eastus"
-RESOURCE_GROUP="k8s-vnet-test"
+RESOURCE_GROUP="k8s-vnet-test-$(($RANDOM % 10000))"
 VNET_NAME="k8s-vnet"
 SUBNET_NAME="k8s-subnet"
 K8S_CLUSTER_NAME="aks-cluster"
-IOT_HUB_NAME="iothub-test"
+IOT_HUB_NAME="iothub-test-$(($RANDOM % 10000))"
 DEVICE_ID="myNodeJsSimulatorDevice"
 
 STORAGE_ACCOUNT_NAME="iothub-store-$(($RANDOM % 10000))"
@@ -17,9 +17,9 @@ az group create \
 echo "Done."
 
 # Create VNET and subnet
-echo "Creating a VNET ($VNET_NAME) with address prefixes ($ADDR_PREFIXES) and subnet ($SUBNET_NAME) with address prefixes ($SUBNET_PREFIXES)"
 ADDR_PREFIXES='10.0.0.0/16'
 SUBNET_PREFIXES='10.0.0.0/24'
+echo "Creating a VNET ($VNET_NAME) with address prefixes ($ADDR_PREFIXES) and subnet ($SUBNET_NAME) with address prefixes ($SUBNET_PREFIXES)"
 az network vnet create \
   --resource-group $RESOURCE_GROUP \
   --name $VNET_NAME \
@@ -27,6 +27,11 @@ az network vnet create \
   --subnet-name $SUBNET_NAME \
   --subnet-prefix $SUBNET_PREFIXES
 echo "Done."
+
+az network vnet subnet update \
+  --service-endpoints Microsoft.EventHub \
+  --resource-group $RESOURCE_GROUP \
+  --vnet-name $VNET_NAME
 
 # Subnet ID
 SUBNET_ID=$(az network vnet subnet list \
