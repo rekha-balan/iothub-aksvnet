@@ -6,7 +6,7 @@ K8S_CLUSTER_NAME="aks-cluster"
 IOT_HUB_NAME="iothub-test-$(($RANDOM % 10000))"
 DEVICE_ID="myNodeJsSimulatorDevice"
 
-STORAGE_ACCOUNT_NAME="iothub-store-$(($RANDOM % 10000))"
+STORAGE_ACCOUNT_NAME="iothubstore$(($RANDOM % 10000))"
 STORAGE_CONTAINER_NAME="eph-leases"
 
 # Create Resource Group
@@ -94,7 +94,7 @@ echo "Done."
 
 # Get a device connection string
 echo "Getting device connection string for: $DEVICE_ID"
-DEVICE_CONNECTION_STRING_VALUE=$(az iot hub device-identity show-connection-string \
+DEVICE_CONNECTION_STRING=$(az iot hub device-identity show-connection-string \
   --hub-name $IOT_HUB_NAME \
   --device-id $DEVICE_ID \
   --output tsv)
@@ -113,8 +113,8 @@ IOTHUB_KEY=$(az iot hub policy show \
   --name $IOTHUB_POLICY_NAME \
   --query primaryKey)
 
-EVENT_HUB_CONNECTION_STRING_VALUE="$IOTHUB_EVENTS_EH_HUB_COMPAT_EP;SharedAccessKeyName=$IOTHUB_POLICY_NAME;SharedAccessKey=$IOTHUB_KEY"
-EVENT_HUB_NAME_VALUE="messages/events"
+EVENT_HUB_CONNECTION_STRING="$IOTHUB_EVENTS_EH_HUB_COMPAT_EP;SharedAccessKeyName=$IOTHUB_POLICY_NAME;SharedAccessKey=$IOTHUB_KEY"
+EVENT_HUB_NAME="messages/events"
 
 # Create a storage account
 echo "Creating storage account: $STORAGE_ACCOUNT_NAME"
@@ -144,12 +144,16 @@ az storage container create \
 echo "Done."
 
 # Updating kubernetes file for deployment
-sed -i -e "s/DEVICE_CONNECTION_STRING_VALUE/DEVICE_CONNECTION_STRING_VALUE/g" kubernetes.yml
-sed -i -e "s@EVENT_HUB_CONNECTION_STRING_VALUE@EVENT_HUB_CONNECTION_STRING_VALUE@g" kubernetes.yml
-sed -i -e "s/EVENT_HUB_NAME_VALUE/EVENT_HUB_NAME_VALUE/g" kubernetes.yml
-sed -i -e "s/STORAGE_ACCOUNT_NAME_VALUE/STORAGE_ACCOUNT_NAME/g" kubernetes.yml
-sed -i -e "s/STORAGE_CONTAINER_NAME_VALUE/STORAGE_CONTAINER_NAME/g" kubernetes.yml
-sed -i -e "s/STORAGE_ACCOUNT_KEY_VALUE/STORAGE_ACCOUNT_KEY/g" kubernetes.yml
+sed -i -e "s/DEVICE_CONNECTION_STRING_VALUE/$DEVICE_CONNECTION_STRING/g" kubernetes.yml
+sed -i -e "s@EVENT_HUB_CONNECTION_STRING_VALUE@$EVENT_HUB_CONNECTION_STRING@g" kubernetes.yml
+sed -i -e "s/EVENT_HUB_NAME_VALUE/$EVENT_HUB_NAME/g" kubernetes.yml
+sed -i -e "s/STORAGE_ACCOUNT_NAME_VALUE/$STORAGE_ACCOUNT_NAME/g" kubernetes.yml
+sed -i -e "s/STORAGE_CONTAINER_NAME_VALUE/$STORAGE_CONTAINER_NAME/g" kubernetes.yml
+sed -i -e "s/STORAGE_ACCOUNT_KEY_VALUE/$STORAGE_ACCOUNT_KEY/g" kubernetes.yml
+
+# Remove any configs with kube
+# Prevents issue until PR merged for Azure CLi: https://github.com/Azure/azure-cli/pull/7327
+rm $HOME/.kube/config
 
 # Deploying apps
 kubectl apply -f kubernetes.yml
