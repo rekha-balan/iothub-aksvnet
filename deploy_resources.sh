@@ -56,12 +56,7 @@ az aks create \
   --generate-ssh-keys
 echo "Done."
 
-# Get AKS credentials
-echo "Downloading AKS credentials to add to kubectl, assumes kubectl already installed (Azure Cloud Shell has it preinstalled)."
-az aks get-credentials \
-  --resource-group $RESOURCE_GROUP \
-  --name $K8S_CLUSTER_NAME
-echo "Done."
+
 
 # AKS sister resource group created, show it for reference.
 echo "Identifying AKS Node Resource Group..."
@@ -100,6 +95,7 @@ DEVICE_CONNECTION_STRING=$(az iot hub device-identity show-connection-string \
   --hub-name $IOT_HUB_NAME \
   --device-id $DEVICE_ID \
   --output tsv)
+echo "Found: $DEVICE_CONNECTION_STRING"
 echo "Done."
 
 # Creating an EventHub-compatible EP
@@ -146,16 +142,23 @@ az storage container create \
 echo "Done."
 
 # Updating kubernetes file for deployment
-sed -i -e "s/DEVICE_CONNECTION_STRING_VALUE/$DEVICE_CONNECTION_STRING/g" kubernetes.yml
+sed -i -e "s@DEVICE_CONNECTION_STRING_VALUE@$DEVICE_CONNECTION_STRING@g" kubernetes.yml
 sed -i -e "s@EVENT_HUB_CONNECTION_STRING_VALUE@$EVENT_HUB_CONNECTION_STRING@g" kubernetes.yml
-sed -i -e "s/EVENT_HUB_NAME_VALUE/$EVENT_HUB_NAME/g" kubernetes.yml
+sed -i -e "s@EVENT_HUB_NAME_VALUE@$EVENT_HUB_NAME@g" kubernetes.yml
 sed -i -e "s/STORAGE_ACCOUNT_NAME_VALUE/$STORAGE_ACCOUNT_NAME/g" kubernetes.yml
 sed -i -e "s/STORAGE_CONTAINER_NAME_VALUE/$STORAGE_CONTAINER_NAME/g" kubernetes.yml
-sed -i -e "s/STORAGE_ACCOUNT_KEY_VALUE/$STORAGE_ACCOUNT_KEY/g" kubernetes.yml
+sed -i -e "s@STORAGE_ACCOUNT_KEY_VALUE@$STORAGE_ACCOUNT_KEY@g" kubernetes.yml
 
 # Remove any configs with kube
 # Prevents issue until PR merged for Azure CLi: https://github.com/Azure/azure-cli/pull/7327
 rm $HOME/.kube/config
+
+# Get AKS credentials
+echo "Downloading AKS credentials to add to kubectl, assumes kubectl already installed (Azure Cloud Shell has it preinstalled)."
+az aks get-credentials \
+  --resource-group $RESOURCE_GROUP \
+  --name $K8S_CLUSTER_NAME
+echo "Done."
 
 # Deploying apps
 kubectl apply -f kubernetes.yml
