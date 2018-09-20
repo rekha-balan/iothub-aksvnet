@@ -1,5 +1,5 @@
 LOCATION="eastus"
-RESOURCE_GROUP="k8s-vnet-test-$(($RANDOM % 10000))"
+RESOURCE_GROUP="aks-iothub-vnet-test-$(($RANDOM % 10000))"
 VNET_NAME="k8s-vnet"
 SUBNET_NAME="k8s-subnet"
 K8S_CLUSTER_NAME="aks-cluster"
@@ -28,11 +28,13 @@ az network vnet create \
   --subnet-prefix $SUBNET_PREFIXES
 echo "Done."
 
+echo "Adding VNet service endpoint to EventHubs."
 az network vnet subnet update \
   --resource-group $RESOURCE_GROUP \
   --vnet-name $VNET_NAME \
-  --subnet-name $SUBNET_NAME \
+  --name $SUBNET_NAME \
   --service-endpoints Microsoft.EventHub
+echo "Done."
 
 # Subnet ID
 SUBNET_ID=$(az network vnet subnet list \
